@@ -1,0 +1,165 @@
+/* Настройки */
+.settings-screen {
+    background: white;
+    height: 100vh;
+}
+
+.settings-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.settings-header {
+    padding: 20px;
+    background: #667eea;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.settings-content {
+    padding: 20px;
+}
+
+/* Профиль */
+.profile-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+}
+
+.profile-info p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.btn-edit {
+    background: none;
+    border: 2px solid #667eea;
+    color: #667eea;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Список настроек */
+.settings-list {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.setting-item:hover {
+    background: #f8f9fa;
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item.logout {
+    color: #ff4444;
+}
+
+/* Формы редактирования */
+.edit-form {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #666;
+    font-size: 14px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e1e1e1;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 2px solid #e1e1e1;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn-save {
+    flex: 1;
+    padding: 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
