@@ -1,0 +1,78 @@
+/* Стили для выбора страны */
+.country-selector {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    border: 2px solid #e1e1e1;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.country-selector select {
+    flex: 1;
+    border: none;
+    padding: 15px;
+    font-size: 16px;
+    background: white;
+}
+
+#country-flag {
+    padding: 0 15px;
+    font-size: 20px;
+    background: #f5f5f5;
+}
+
+.phone-input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#phone-number {
+    flex: 1;
+    padding: 15px;
+    border: 2px solid #e1e1e1;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+/* Стили для ввода кода */
+.code-input {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    justify-content: center;
+}
+
+.code-input input {
+    width: 50px;
+    height: 60px;
+    text-align: center;
+    font-size: 24px;
+    border: 2px solid #e1e1e1;
+    border-radius: 10px;
+}
+
+/* Стили для контактов с флагами */
+.contact-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.contact-flag {
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.contact-phone {
+    color: #666;
+    font-size: 12px;
+}
+
+.user-phone {
+    color: #666;
+    font-size: 12px;
+  }
