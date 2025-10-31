@@ -1,70 +1,44 @@
 class AuthManager {
     constructor() {
         this.currentUser = null;
-        this.token = null;
     }
     
-    async register(userData) {
-        try {
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData)
-            });
+    register(userData) {
+        return new Promise((resolve) => {
+            const user = {
+                id: Date.now().toString(),
+                username: userData.username,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                online: true
+            };
             
-            if (!response.ok) {
-                throw new Error('Registration failed');
-            }
+            this.currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.setItem('userPassword', userData.password);
             
-            const data = await response.json();
-            this.currentUser = data.user;
-            this.token = data.token;
-            
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            localStorage.setItem('token', data.token);
-            
-            return data;
-        } catch (error) {
-            console.error('Registration error:', error);
-            throw error;
-        }
+            resolve({ user });
+        });
     }
     
-    async login(phone) {
-        try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ phone })
-            });
+    login(loginData) {
+        return new Promise((resolve, reject) => {
+            const savedUser = localStorage.getItem('currentUser');
+            const savedPassword = localStorage.getItem('userPassword');
             
-            if (!response.ok) {
-                throw new Error('Login failed');
+            if (savedUser && savedPassword === loginData.password) {
+                this.currentUser = JSON.parse(savedUser);
+                resolve({ user: this.currentUser });
+            } else {
+                reject(new Error('Неверные данные для входа'));
             }
-            
-            const data = await response.json();
-            this.currentUser = data.user;
-            this.token = data.token;
-            
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            localStorage.setItem('token', data.token);
-            
-            return data;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
+        });
     }
     
     logout() {
         this.currentUser = null;
-        this.token = null;
         localStorage.removeItem('currentUser');
-        localStorage.removeItem('token');
+        localStorage.removeItem('userPassword');
     }
     
     isAuthenticated() {
@@ -77,16 +51,12 @@ class AuthManager {
     
     loadFromStorage() {
         const savedUser = localStorage.getItem('currentUser');
-        const savedToken = localStorage.getItem('token');
-        
-        if (savedUser && savedToken) {
+        if (savedUser) {
             this.currentUser = JSON.parse(savedUser);
-            this.token = savedToken;
             return true;
         }
         return false;
     }
 }
 
-// Создаем глобальный экземпляр
 window.authManager = new AuthManager();
