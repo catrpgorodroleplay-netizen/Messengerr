@@ -3,119 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Clone - International</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Telegram Web</title>
+    <link rel="stylesheet" href="styles/auth.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/chat.css">
+    <link rel="stylesheet" href="styles/settings.css">
 </head>
 <body>
-    <!-- Экран авторизации с выбором страны -->
-    <div id="auth-screen" class="screen active">
+    <!-- Экран выбора входа -->
+    <div id="start-screen" class="screen active">
         <div class="auth-container">
-            <h1>🌍 Войдите в Telegram</h1>
+            <div class="auth-logo">✈️</div>
+            <h1 class="auth-title">Telegram Web</h1>
+            <p class="auth-subtitle">Быстрые и безопасные сообщения</p>
             
-            <div class="phone-input-container">
-                <div class="country-selector">
-                    <select id="country-code" onchange="updateCountryFlag()">
-                        <option value="7" data-flag="🇷🇺">Россия +7</option>
-                        <option value="375" data-flag="🇧🇾">Беларусь +375</option>
-                        <option value="380" data-flag="🇺🇦">Украина +380</option>
-                        <option value="77" data-flag="🇰🇿">Казахстан +7</option>
-                        <option value="374" data-flag="🇦🇲">Армения +374</option>
-                        <option value="994" data-flag="🇦🇿">Азербайджан +994</option>
-                        <option value="995" data-flag="🇬🇪">Грузия +995</option>
-                        <option value="998" data-flag="🇺🇿">Узбекистан +998</option>
-                        <option value="49" data-flag="🇩🇪">Германия +49</option>
-                        <option value="1" data-flag="🇺🇸">США +1</option>
-                        <option value="44" data-flag="🇬🇧">Великобритания +44</option>
-                        <option value="33" data-flag="🇫🇷">Франция +33</option>
-                        <option value="39" data-flag="🇮🇹">Италия +39</option>
-                        <option value="34" data-flag="🇪🇸">Испания +34</option>
-                        <option value="86" data-flag="🇨🇳">Китай +86</option>
-                        <option value="91" data-flag="🇮🇳">Индия +91</option>
-                    </select>
-                    <span id="country-flag">🇷🇺</span>
-                </div>
-                <input type="tel" id="phone-number" placeholder="Номер телефона" oninput="formatPhoneNumber()">
+            <div class="auth-buttons">
+                <button class="btn-primary" onclick="showLogin()">Войти в свой аккаунт</button>
+                <button class="btn-secondary" onclick="showRegister()">Зарегистрироваться</button>
             </div>
+        </div>
+    </div>
 
+    <!-- Экран входа -->
+    <div id="login-screen" class="screen">
+        <div class="auth-container">
+            <h1 class="auth-title">Вход в аккаунт</h1>
+            
             <div class="auth-form">
-                <input type="text" id="username" placeholder="Имя пользователя (опционально)">
-                <button class="btn-primary" onclick="sendCode()">Отправить код</button>
+                <input type="text" id="login-username" placeholder="Имя пользователя" class="auth-input">
+                <input type="password" id="login-password" placeholder="Пароль" class="auth-input">
+                <button class="btn-primary" onclick="login()">Войти</button>
+                <button class="btn-secondary" onclick="showStartScreen()">Назад</button>
             </div>
         </div>
     </div>
 
-    <!-- Экран подтверждения кода -->
-    <div id="verify-screen" class="screen">
+    <!-- Экран регистрации -->
+    <div id="register-screen" class="screen">
         <div class="auth-container">
-            <h1>Подтверждение номера</h1>
-            <p>Код отправлен на <span id="verify-phone"></span></p>
+            <h1 class="auth-title">Регистрация</h1>
             
-            <div class="code-input">
-                <input type="text" id="code-1" maxlength="1" oninput="moveToNext(1)">
-                <input type="text" id="code-2" maxlength="1" oninput="moveToNext(2)">
-                <input type="text" id="code-3" maxlength="1" oninput="moveToNext(3)">
-                <input type="text" id="code-4" maxlength="1" oninput="moveToNext(4)">
-                <input type="text" id="code-5" maxlength="1" oninput="moveToNext(5)">
-            </div>
-
-            <button class="btn-primary" onclick="verifyCode()">Подтвердить</button>
-            <button class="btn-link" onclick="resendCode()">Отправить код повторно</button>
-        </div>
-    </div>
-
-    <!-- Экран профиля -->
-    <div id="profile-screen" class="screen">
-        <div class="auth-container">
-            <h1>Ваш профиль</h1>
-            <div class="profile-form">
-                <input type="text" id="first-name" placeholder="Имя">
-                <input type="text" id="last-name" placeholder="Фамилия">
-                <button class="btn-primary" onclick="completeRegistration()">Сохранить</button>
+            <div class="auth-form">
+                <input type="text" id="reg-username" placeholder="Придумайте имя пользователя" class="auth-input">
+                <input type="password" id="reg-password" placeholder="Придумайте пароль" class="auth-input">
+                <input type="text" id="reg-firstname" placeholder="Ваше имя" class="auth-input">
+                <input type="text" id="reg-lastname" placeholder="Ваша фамилия" class="auth-input">
+                <button class="btn-primary" onclick="register()">Создать аккаунт</button>
+                <button class="btn-secondary" onclick="showStartScreen()">Назад</button>
             </div>
         </div>
     </div>
 
-<!-- Главный экран -->
+    <!-- Главный экран чатов -->
     <div id="main-screen" class="screen">
+        <!-- Боковая панель -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="user-info" onclick="showSettings()">
-                    <div class="avatar">👤</div>
+                    <div class="avatar" id="user-avatar">👤</div>
                     <div>
                         <div id="current-user-name">Пользователь</div>
-                        <div class="online-status">+<span id="current-user-phone"></span></div>
+                        <div class="online-status">online</div>
                     </div>
                 </div>
+                <button class="btn-icon" onclick="showNewChat()">✏️</button>
             </div>
 
-            <!-- Список контактов с флагами -->
-            <div class="contacts-list" id="contacts-list">
-                <!-- Контакты будут здесь -->
+            <div class="search-container">
+                <input type="text" id="search-contacts" placeholder="Поиск" class="search-input">
+            </div>
+
+            <div class="chats-list" id="chats-list">
+                <!-- Список чатов будет здесь -->
             </div>
         </div>
 
+        <!-- Область чата -->
         <div class="chat-area">
-            <div class="chat-header">
+            <div class="chat-header" id="chat-header">
                 <div class="chat-partner-info">
                     <div class="avatar">👥</div>
                     <div>
                         <div class="chat-name" id="current-chat-name">Выберите чат</div>
-                        <div class="online-status" id="partner-phone"></div>
+                        <div class="online-status" id="online-status">онлайн</div>
                     </div>
+
+</div>
+                <div class="chat-actions">
+                    <button class="btn-icon" onclick="searchMessages()">🔍</button>
+                    <button class="btn-icon" onclick="showChatSettings()">⋮</button>
                 </div>
             </div>
 
             <div class="messages-container" id="messages-container">
-                <!-- Сообщения здесь -->
+                <div class="empty-chat">
+                    <p>Выберите чат чтобы начать общение</p>
+                </div>
             </div>
 
             <div class="message-input-container">
-                <input type="text" id="message-input" placeholder="Введите сообщение...">
+                <input type="text" id="message-input" placeholder="Введите сообщение..." onkeypress="handleKeyPress(event)">
                 <button class="btn-send" onclick="sendMessage()">➤</button>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Подключение модулей -->
+    <script src="modules/auth.js"></script>
+    <script src="modules/messages.js"></script>
+    <script src="modules/contacts.js"></script>
+    <script src="modules/settings.js"></script>
+    <script src="modules/utils.js"></script>
+    
+    <!-- Socket.io -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    
+    <!-- Главный скрипт -->
+    <script>
+        // Простые функции переключения экранов
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showStartScreen() { showScreen('start-screen'); }
+        function showLogin() { showScreen('login-screen'); }
+        function showRegister() { showScreen('register-screen'); }
+        function showMainScreen() { showScreen('main-screen'); }
+
+        // Упрощенная регистрация
+        function register() {
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            const firstName = document.getElementById('reg-firstname').value;
+            const lastName = document.getElementById('reg-lastname').value;
+
+            if (!username  !password  !firstName) {
+                alert('Заполните все обязательные поля');
+                return;
+            }
+
+            // Сохраняем пользователя
+            const user = {
+                id: Date.now().toString(),
+                username: username,
+                firstName: firstName,
+                lastName: lastName,
+                online: true
+            };
+
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.setItem('userPassword', password);
+
+            // Загружаем тестовые контакты
+            if (window.contactManager) {
+                contactManager.loadSampleContacts();
+            }
+
+            showMainScreen();
+            updateUserInfo(user);
+        }
+
+        // Упрощенный вход
+        function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            // Проверяем существующих пользователей
+            const savedUser = localStorage.getItem('currentUser');
+            const savedPassword = localStorage.getItem('userPassword');
+
+            if (savedUser && savedPassword === password) {
+                const user = JSON.parse(savedUser);
+                
+                if (window.contactManager) {
+                    contactManager.loadSampleContacts();
+                }
+                if (window.messageManager) {
+                    messageManager.connectSocket();
+                }
+
+                showMainScreen();
+                updateUserInfo(user);
+            } else {
+                alert('Неверное имя пользователя или пароль');
+            }
+        }
+
+function updateUserInfo(user) {
+            document.getElementById('current-user-name').textContent = 
+                ${user.firstName} ${user.lastName};
+            document.getElementById('user-avatar').textContent = 
+                user.firstName[0] + (user.lastName ? user.lastName[0] : '');
+        }
+
+        // Отправка сообщения
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            
+            if (text && window.messageManager) {
+                // Временно - просто показываем сообщение
+                const messagesContainer = document.getElementById('messages-container');
+                messagesContainer.innerHTML = 
+                    <div class="message message-outgoing">
+                        <div class="message-text">${text}</div>
+                        <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                ;
+                input.value = '';
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Проверяем авторизацию при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                if (window.contactManager) {
+                    contactManager.loadSampleContacts();
+                }
+                showMainScreen();
+                updateUserInfo(user);
+            }
+        });
+    </script>
 </body>
-  </html>
+    </html>
