@@ -1,39 +1,367 @@
+class AuthManager {
+    constructor() {
+        this.currentUser = null;
+    }
+    
+    register(userData) {
+        return new Promise((resolve) => {
+            const user = {
+                id: Date.now().toString(),
+                username: userData.username,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                online: true
+            };
+            
+            this.currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.setItem('userPassword', userData.password);
+            
+            resolve({ user });
+        });
+    }
+    
+    login(loginData) {
+        return new Promise((resolve, reject) => {
+            const savedUser = localStorage.getItem('currentUser');
+            const savedPassword = localStorage.getItem('userPassword');
+            
+            if (savedUser && savedPassword === loginData.password) {
+                this.currentUser = JSON.parse(savedUser);
+                resolve({ user: this.currentUser });
+            } else {
+                reject(new Error('Неверные данные для входа'));
+            }
+        });
+    }
+    
+    logout() {
+        this.currentUser = null;
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('userPassword');
+    }
+    
+    isAuthenticated() {
+        return this.currentUser !== null;
+    }
+    
+    getCurrentUser() {
+        return this.currentUser;
+    }
+    
+    loadFromStorage() {
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            this.currentUser = JSON.parse(savedUser);
+            return true;
+        }
+        return false;
+    }
+}
+
+window.authManager = new AuthManager();
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Web</title>
-    <link rel="stylesheet" href="styles/auth.css">
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/chat.css">
-    <link rel="stylesheet" href="styles/settings.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+        }
+
+        .screen {
+            display: none;
+            height: 100vh;
+        }
+
+        .screen.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Стили авторизации */
+        .auth-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .auth-logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .auth-title {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .auth-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .auth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: #0088cc;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #0077b3;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            color: #0088cc;
+            border: 2px solid #0088cc;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f8ff;
+        }
+
+        /* Стили главного экрана */
+        .main-screen {
+            display: flex;
+            height: 100vh;
+            background: white;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            border-right: 1px solid #e1e1e1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e1e1e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #0088cc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .search-container {
+            padding: 15px;
+            background: white;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .contacts-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .contact-item:hover {
+            background: #f5f5f5;
+        }
+
+.chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #e1e1e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-partner-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #e5ddd5;
+        }
+
+        .message {
+            max-width: 70%;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .message-incoming {
+            background: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-outgoing {
+            background: #dcf8c6;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .message-input-container {
+            padding: 15px 20px;
+            background: #f5f5f5;
+            border-top: 1px solid #e1e1e1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .btn-send {
+            background: #0088cc;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-chat {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 18px;
+        }
+
+        .online-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            margin-left: auto;
+        }
+
+        .online-indicator.offline {
+            background: #ccc;
+        }
+    </style>
 </head>
 <body>
-    <!-- Экран выбора входа -->
-    <div id="start-screen" class="screen active">
+    <!-- Экран выбора страны -->
+    <div id="country-screen" class="screen active">
         <div class="auth-container">
             <div class="auth-logo">✈️</div>
-            <h1 class="auth-title">Telegram Web</h1>
-            <p class="auth-subtitle">Быстрые и безопасные сообщения</p>
+            <h1 class="auth-title">Добро пожаловать в Telegram</h1>
+            <p class="auth-subtitle">Пожалуйста, выберите вашу страну</p>
             
             <div class="auth-buttons">
-                <button class="btn-primary" onclick="showLogin()">Войти в свой аккаунт</button>
-                <button class="btn-secondary" onclick="showRegister()">Зарегистрироваться</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Экран входа -->
-    <div id="login-screen" class="screen">
-        <div class="auth-container">
-            <h1 class="auth-title">Вход в аккаунт</h1>
-            
-            <div class="auth-form">
-                <input type="text" id="login-username" placeholder="Имя пользователя" class="auth-input">
-                <input type="password" id="login-password" placeholder="Пароль" class="auth-input">
-                <button class="btn-primary" onclick="login()">Войти</button>
-                <button class="btn-secondary" onclick="showStartScreen()">Назад</button>
+                <button class="btn-primary" onclick="selectCountry('RU')">
+                    🇷🇺 Россия
+                </button>
+                <button class="btn-primary" onclick="selectCountry('BY')">
+                    🇧🇾 Беларусь
+                </button>
+                <button class="btn-primary" onclick="selectCountry('UA')">
+                    🇺🇦 Украина
+                </button>
+                <button class="btn-secondary" onclick="selectCountry('OTHER')">
+                    🌍 Другая страна
+                </button>
             </div>
         </div>
     </div>
@@ -41,57 +369,49 @@
     <!-- Экран регистрации -->
     <div id="register-screen" class="screen">
         <div class="auth-container">
-            <h1 class="auth-title">Регистрация</h1>
+            <h1 class="auth-title">Ваше имя</h1>
+            <p class="auth-subtitle">Укажите ваше имя и фамилию</p>
             
-            <div class="auth-form">
-                <input type="text" id="reg-username" placeholder="Придумайте имя пользователя" class="auth-input">
-                <input type="password" id="reg-password" placeholder="Придумайте пароль" class="auth-input">
-                <input type="text" id="reg-firstname" placeholder="Ваше имя" class="auth-input">
-                <input type="text" id="reg-lastname" placeholder="Ваша фамилия" class="auth-input">
-                <button class="btn-primary" onclick="register()">Создать аккаунт</button>
-                <button class="btn-secondary" onclick="showStartScreen()">Назад</button>
+            <div style="margin: 20px 0;">
+
+<input type="text" id="first-name" placeholder="Имя" class="search-input" style="margin-bottom: 10px;">
+                <input type="text" id="last-name" placeholder="Фамилия (необязательно)" class="search-input">
             </div>
+            
+            <button class="btn-primary" onclick="completeRegistration()">
+                ПРОДОЛЖИТЬ
+            </button>
         </div>
     </div>
 
-    <!-- Главный экран чатов -->
+    <!-- Главный экран -->
     <div id="main-screen" class="screen">
-        <!-- Боковая панель -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="user-info" onclick="showSettings()">
-                    <div class="avatar" id="user-avatar">👤</div>
-                    <div>
-                        <div id="current-user-name">Пользователь</div>
-                        <div class="online-status">online</div>
-                    </div>
+                    <div class="avatar" id="user-avatar">T</div>
+                    <span id="current-user-name">Telegram</span>
                 </div>
-                <button class="btn-icon" onclick="showNewChat()">✏️</button>
+                <button class="btn-icon" onclick="showSearch()">🔍</button>
             </div>
 
             <div class="search-container">
-                <input type="text" id="search-contacts" placeholder="Поиск" class="search-input">
+                <input type="text" id="search-contacts" placeholder="Поиск" class="search-input" oninput="searchUsers()">
             </div>
 
-            <div class="chats-list" id="chats-list">
-                <!-- Список чатов будет здесь -->
+            <div class="contacts-list" id="contacts-list">
+                <!-- Контакты появятся здесь -->
             </div>
         </div>
 
-        <!-- Область чата -->
         <div class="chat-area">
             <div class="chat-header" id="chat-header">
                 <div class="chat-partner-info">
-                    <div class="avatar">👥</div>
+                    <div class="avatar" id="chat-avatar">U</div>
                     <div>
                         <div class="chat-name" id="current-chat-name">Выберите чат</div>
                         <div class="online-status" id="online-status">онлайн</div>
                     </div>
-
-</div>
-                <div class="chat-actions">
-                    <button class="btn-icon" onclick="searchMessages()">🔍</button>
-                    <button class="btn-icon" onclick="showChatSettings()">⋮</button>
                 </div>
             </div>
 
@@ -108,113 +428,180 @@
         </div>
     </div>
 
-    <!-- Подключение модулей -->
-    <script src="modules/auth.js"></script>
-    <script src="modules/messages.js"></script>
-    <script src="modules/contacts.js"></script>
-    <script src="modules/settings.js"></script>
-    <script src="modules/utils.js"></script>
-    
-    <!-- Socket.io -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    
-    <!-- Главный скрипт -->
     <script>
-        // Простые функции переключения экранов
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            document.getElementById(screenId).classList.add('active');
+        // База пользователей (в реальном приложении - на сервере)
+        const allUsers = [
+            { id: '1', username: 'ivan', firstName: 'Иван', lastName: 'Петров', avatar: 'ИП', online: true },
+            { id: '2', username: 'anna', firstName: 'Анна', lastName: 'Иванова', avatar: 'АИ', online: true },
+            { id: '3', username: 'alex', firstName: 'Алексей', lastName: 'Сидоров', avatar: 'АС', online: false },
+            { id: '4', username: 'maria', firstName: 'Мария', lastName: 'Кузнецова', avatar: 'МК', online: true },
+            { id: '5', username: 'demo', firstName: 'Демо', lastName: 'Пользователь', avatar: 'ДП', online: true }
+        ];
+
+        let currentUser = null;
+        let currentChat = null;
+        let messages = {};
+
+        // Выбор страны
+        function selectCountry(country) {
+            currentUser = { country: country };
+            showScreen('register-screen');
         }
 
-        function showStartScreen() { showScreen('start-screen'); }
-        function showLogin() { showScreen('login-screen'); }
-        function showRegister() { showScreen('register-screen'); }
-        function showMainScreen() { showScreen('main-screen'); }
+        // Завершение регистрации
+        function completeRegistration() {
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
 
-        // Упрощенная регистрация
-        function register() {
-            const username = document.getElementById('reg-username').value;
-            const password = document.getElementById('reg-password').value;
-            const firstName = document.getElementById('reg-firstname').value;
-            const lastName = document.getElementById('reg-lastname').value;
-
-            if (!username  !password  !firstName) {
-                alert('Заполните все обязательные поля');
+            if (!firstName) {
+                alert('Введите ваше имя');
                 return;
             }
 
-            // Сохраняем пользователя
-            const user = {
-                id: Date.now().toString(),
-                username: username,
+            // Создаем пользователя
+            currentUser = {
+                id: 'current',
+                username: firstName.toLowerCase() + Math.random().toString(36).substr(2, 3),
                 firstName: firstName,
                 lastName: lastName,
+                avatar: (firstName[0] + (lastName ? lastName[0] : '')).toUpperCase(),
                 online: true
             };
 
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            localStorage.setItem('userPassword', password);
+            // Сохраняем
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-            // Загружаем тестовые контакты
-            if (window.contactManager) {
-                contactManager.loadSampleContacts();
-            }
-
+            // Показываем главный экран
             showMainScreen();
-            updateUserInfo(user);
         }
 
-        // Упрощенный вход
-        function login() {
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-
-            // Проверяем существующих пользователей
-            const savedUser = localStorage.getItem('currentUser');
-            const savedPassword = localStorage.getItem('userPassword');
-
-            if (savedUser && savedPassword === password) {
-                const user = JSON.parse(savedUser);
-                
-                if (window.contactManager) {
-                    contactManager.loadSampleContacts();
-                }
-                if (window.messageManager) {
-                    messageManager.connectSocket();
-                }
-
-                showMainScreen();
-                updateUserInfo(user);
-            } else {
-                alert('Неверное имя пользователя или пароль');
+// Поиск пользователей
+        function searchUsers() {
+            const query = document.getElementById('search-contacts').value.toLowerCase();
+            const contactsList = document.getElementById('contacts-list');
+            
+            if (!query) {
+                loadContacts();
+                return;
             }
+
+            const filteredUsers = allUsers.filter(user => 
+                user.username.toLowerCase().includes(query) ||
+                user.firstName.toLowerCase().includes(query) ||
+                user.lastName.toLowerCase().includes(query)
+            );
+
+            contactsList.innerHTML = filteredUsers.map(user => 
+                <div class="contact-item" onclick="startChat('${user.id}')">
+                    <div class="avatar">${user.avatar}</div>
+                    <div style="flex: 1;">
+                        <div>${user.firstName} ${user.lastName}</div>
+                        <div style="font-size: 12px; color: #666;">@${user.username}</div>
+                    </div>
+                    <div class="online-indicator ${user.online ? '' : 'offline'}"></div>
+                </div>
+            ).join('');
         }
 
-function updateUserInfo(user) {
-            document.getElementById('current-user-name').textContent = 
-                ${user.firstName} ${user.lastName};
-            document.getElementById('user-avatar').textContent = 
-                user.firstName[0] + (user.lastName ? user.lastName[0] : '');
+        // Загрузка контактов
+        function loadContacts() {
+            const contactsList = document.getElementById('contacts-list');
+            contactsList.innerHTML = allUsers.map(user => 
+                <div class="contact-item" onclick="startChat('${user.id}')">
+                    <div class="avatar">${user.avatar}</div>
+                    <div style="flex: 1;">
+                        <div>${user.firstName} ${user.lastName}</div>
+                        <div style="font-size: 12px; color: #666;">@${user.username}</div>
+                    </div>
+                    <div class="online-indicator ${user.online ? '' : 'offline'}"></div>
+                </div>
+            ).join('');
+        }
+
+        // Начать чат
+        function startChat(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            currentChat = user;
+            
+            // Обновляем заголовок чата
+            document.getElementById('current-chat-name').textContent = ${user.firstName} ${user.lastName};
+            document.getElementById('chat-avatar').textContent = user.avatar;
+            document.getElementById('online-status').textContent = user.online ? 'онлайн' : 'был(а) недавно';
+
+            // Загружаем сообщения
+            loadMessages(userId);
+        }
+
+        // Загрузка сообщений
+        function loadMessages(userId) {
+            if (!messages[userId]) {
+                messages[userId] = [];
+            }
+
+            const messagesContainer = document.getElementById('messages-container');
+            messagesContainer.innerHTML = messages[userId].map(msg => 
+                <div class="message ${msg.sender === 'current' ? 'message-outgoing' : 'message-incoming'}">
+                    <div>${msg.text}</div>
+                    <div class="message-time">${msg.time}</div>
+                </div>
+            ).join('');
+
+            // Скролл вниз
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Отправка сообщения
         function sendMessage() {
+            if (!currentChat) {
+                alert('Выберите чат для общения');
+                return;
+            }
+
             const input = document.getElementById('message-input');
             const text = input.value.trim();
-            
-            if (text && window.messageManager) {
-                // Временно - просто показываем сообщение
-                const messagesContainer = document.getElementById('messages-container');
-                messagesContainer.innerHTML = 
-                    <div class="message message-outgoing">
-                        <div class="message-text">${text}</div>
-                        <div class="message-time">${new Date().toLocaleTimeString()}</div>
-                    </div>
-                ;
-                input.value = '';
+
+            if (!text) return;
+
+            // Сохраняем сообщение
+            const message = {
+                text: text,
+                sender: 'current',
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            if (!messages[currentChat.id]) {
+                messages[currentChat.id] = [];
             }
+            messages[currentChat.id].push(message);
+
+            // Очищаем поле ввода
+            input.value = '';
+
+            // Обновляем чат
+            loadMessages(currentChat.id);
+
+// Симуляция ответа (через 1-3 секунды)
+            setTimeout(() => {
+                const responses = [
+                    'Привет! Как дела?',
+                    'Интересное сообщение!',
+                    'Я сейчас занят, напишу позже',
+                    'Спасибо за сообщение!',
+                    'Отлично! А у тебя как?'
+                ];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+
+                const botMessage = {
+                    text: response,
+                    sender: 'other',
+                    time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                };
+
+                messages[currentChat.id].push(botMessage);
+                loadMessages(currentChat.id);
+            }, 1000 + Math.random() * 2000);
         }
 
         function handleKeyPress(event) {
@@ -223,16 +610,30 @@ function updateUserInfo(user) {
             }
         }
 
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showMainScreen() {
+            showScreen('main-screen');
+            loadContacts();
+            
+            // Обновляем информацию о пользователе
+            if (currentUser) {
+                document.getElementById('current-user-name').textContent = currentUser.firstName;
+                document.getElementById('user-avatar').textContent = currentUser.avatar;
+            }
+        }
+
         // Проверяем авторизацию при загрузке
         document.addEventListener('DOMContentLoaded', function() {
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
-                const user = JSON.parse(savedUser);
-                if (window.contactManager) {
-                    contactManager.loadSampleContacts();
-                }
+                currentUser = JSON.parse(savedUser);
                 showMainScreen();
-                updateUserInfo(user);
             }
         });
     </script>
